@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -20,6 +20,7 @@ Pacman agents (in searchAgents.py).
 import util
 from game import Directions
 from typing import List
+
 
 class SearchProblem:
     """
@@ -64,8 +65,6 @@ class SearchProblem:
         util.raiseNotDefined()
 
 
-
-
 def tinyMazeSearch(problem: SearchProblem) -> List[Directions]:
     """
     Returns a sequence of moves that solves tinyMaze.  For any other maze, the
@@ -73,7 +72,8 @@ def tinyMazeSearch(problem: SearchProblem) -> List[Directions]:
     """
     s = Directions.SOUTH
     w = Directions.WEST
-    return  [s, s, w, s, w, w, s, w]
+    return [s, s, w, s, w, w, s, w]
+
 
 def depthFirstSearch(problem: SearchProblem) -> List[Directions]:
     """
@@ -90,17 +90,54 @@ def depthFirstSearch(problem: SearchProblem) -> List[Directions]:
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    visited = set()
+    stack = util.Stack()
+    stack.push((problem.getStartState(), []))
+    while not stack.isEmpty():
+        current, actions = stack.pop()
+        if problem.isGoalState(current):
+            return actions
+        if current not in visited:
+            visited.add(current)
+            for successor, action, _ in problem.getSuccessors(current):
+                stack.push((successor, actions + [action]))
+    return []
+
 
 def breadthFirstSearch(problem: SearchProblem) -> List[Directions]:
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    visited = set()
+    queue = util.Queue()
+    queue.push((problem.getStartState(), []))
+    while not queue.isEmpty():
+        current, actions = queue.pop()
+        if problem.isGoalState(current):
+            return actions
+        if current not in visited:
+            visited.add(current)
+            for successor, action, _ in problem.getSuccessors(current):
+                queue.push((successor, actions + [action]))
+    return []
+
 
 def uniformCostSearch(problem: SearchProblem) -> List[Directions]:
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    visited = set()
+    priorityQueue = util.PriorityQueue()
+    priorityQueue.push((problem.getStartState(), []), 0)
+    while not priorityQueue.isEmpty():
+        current, actions = priorityQueue.pop()
+        if problem.isGoalState(current):
+            return actions
+        cost = problem.getCostOfActions(actions)
+        if current not in visited:
+            visited.add(current)
+            for successor, action, stepCost in problem.getSuccessors(current):
+                priorityQueue.push((successor, actions + [action]), cost + stepCost)
+    return []
+
 
 def nullHeuristic(state, problem=None) -> float:
     """
@@ -109,10 +146,29 @@ def nullHeuristic(state, problem=None) -> float:
     """
     return 0
 
+
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic) -> List[Directions]:
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    visited = {}
+    priorityQueue = util.PriorityQueue()
+    priorityQueue.push(
+        (problem.getStartState(), []), heuristic(problem.getStartState(), problem)
+    )
+    while not priorityQueue.isEmpty():
+        current, actions = priorityQueue.pop()
+        if problem.isGoalState(current):
+            return actions
+        cost = problem.getCostOfActions(actions)
+        if current not in visited or cost < visited[current]:
+            visited[current] = cost
+            for successor, action, stepCost in problem.getSuccessors(current):
+                priorityQueue.push(
+                    (successor, actions + [action]),
+                    cost + stepCost + heuristic(successor, problem),
+                )
+    return []
+
 
 # Abbreviations
 bfs = breadthFirstSearch
