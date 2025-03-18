@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -93,16 +93,31 @@ def joinFactors(factors: List[Factor]):
     if len(factors) > 1:
         intersect = functools.reduce(lambda x, y: x & y, setsOfUnconditioned)
         if len(intersect) > 0:
-            print("Factor failed joinFactors typecheck: ", factor)
+            print("Factor failed joinFactors typecheck: ", factors)
             raise ValueError("unconditionedVariables can only appear in one factor. \n"
                     + "unconditionedVariables: " + str(intersect) + 
                     "\nappear in more than one input factor.\n" + 
                     "Input factors: \n" +
                     "\n".join(map(str, factors)))
 
-
     "*** YOUR CODE HERE ***"
-    raiseNotDefined()
+    setsOfConditioned = [set(factor.conditionedVariables()) for factor in factors]
+    # Unconditioned variables are the union of all unconditioned variables in the factors
+    unconditionedVariables = functools.reduce(lambda x, y: x | y, setsOfUnconditioned)
+    # Conditioned variables are those
+    conditionedVariables = functools.reduce(lambda x, y: x | y, setsOfConditioned) - unconditionedVariables
+    # VariableDomainsDict for all the input factors are the same, use the first factor
+    variableDomainsDict = next(iter(factors)).variableDomainsDict()
+    # Create a new factor with the union of all unconditioned variables and conditioned variables
+    factor = Factor(unconditionedVariables, conditionedVariables, variableDomainsDict)
+    # Iterate over all possible assignments of the new factor
+    for assignment in factor.getAllPossibleAssignmentDicts():
+        # Multiply the probabilities of the corresponding rows of the input factors
+        probability = 1
+        for f in factors:
+            probability *= f.getProbability(assignment)
+        factor.setProbability(assignment, probability)
+    return factor
     "*** END YOUR CODE HERE ***"
 
 ########### ########### ###########
@@ -153,10 +168,18 @@ def eliminateWithCallTracking(callTrackingList=None):
                     "unconditionedVariables: " + str(factor.unconditionedVariables()))
 
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        newFactor = Factor(factor.unconditionedVariables() - {eliminationVariable}, factor.conditionedVariables(), factor.variableDomainsDict())
+        for assignment in newFactor.getAllPossibleAssignmentDicts():
+            probability = 0
+            # Iterate over all possible values of the elimination variable, summing the probabilities
+            for value in factor.variableDomainsDict()[eliminationVariable]:
+                assignment[eliminationVariable] = value
+                probability += factor.getProbability(assignment)
+            newFactor.setProbability(assignment, probability)
+        
+        return newFactor
         "*** END YOUR CODE HERE ***"
 
     return eliminate
 
 eliminate = eliminateWithCallTracking()
-
