@@ -279,7 +279,7 @@ def verify_node(node, expected_type, expected_shape, method_name):
         assert False, "If you see this message, please report a bug in the autograder"
 
     if expected_type != 'loss':
-        assert all([(expected is '?' or actual == expected) for (actual, expected) in zip(node.detach().numpy().shape, expected_shape)]), (
+        assert all([(expected == '?' or actual == expected) for (actual, expected) in zip(node.detach().numpy().shape, expected_shape)]), (
             "{} should return an object with shape {}, got {}".format(
                 method_name, expected_shape, node.shape))
 
