@@ -1,4 +1,3 @@
-
 """
 Functions you should use.
 Please avoid importing any other torch functions or modules.
@@ -6,10 +5,9 @@ Your code will not pass if the gradescope autograder detects any changed imports
 """
 
 from torch.nn import Module
-from torch.nn import  Linear
+from torch.nn import Linear
 from torch import tensor, double, optim
 from torch.nn.functional import relu, mse_loss
-
 
 
 class DeepQNetwork(Module):
@@ -17,6 +15,7 @@ class DeepQNetwork(Module):
     A model that uses a Deep Q-value Network (DQN) to approximate Q(s,a) as part
     of reinforcement learning.
     """
+
     def __init__(self, state_dim, action_dim):
         self.num_actions = action_dim
         self.state_size = state_dim
@@ -24,17 +23,24 @@ class DeepQNetwork(Module):
         # Remember to set self.learning_rate, self.numTrainingGames,
         # and self.batch_size!
         "*** YOUR CODE HERE ***"
-        self.learning_rate = 0
-        self.numTrainingGames = 0
-        self.batch_size = 0
+        self.learning_rate = 0.0005
+        self.numTrainingGames = 5000
+        self.batch_size = 128
 
-        "**END CODE"""
+        self.fc1 = Linear(state_dim, 256)
+        self.fc2 = Linear(256, 128)
+        self.output_layer = Linear(128, action_dim)
+
+        self.optimizer = optim.SGD(self.parameters(), lr=self.learning_rate)
+        self.scheduler = optim.lr_scheduler.StepLR(
+            self.optimizer, step_size=5, gamma=0.0001
+        )
+        "**END CODE" ""
         self.double()
-
 
     def get_loss(self, states, Q_target):
         """
-        Returns the Squared Loss between Q values currently predicted 
+        Returns the Squared Loss between Q values currently predicted
         by the network, and Q_target.
         Inputs:
             states: a (batch_size x state_dim) numpy array
@@ -43,7 +49,7 @@ class DeepQNetwork(Module):
             loss node between Q predictions and Q_target
         """
         "*** YOUR CODE HERE ***"
-
+        return mse_loss(self.forward(states), Q_target)
 
     def forward(self, states):
         """
@@ -59,8 +65,11 @@ class DeepQNetwork(Module):
                 scores, for each of the actions
         """
         "*** YOUR CODE HERE ***"
+        x = tensor(states, dtype=double)
+        x = relu(self.fc1(x))
+        x = relu(self.fc2(x))
+        return self.output_layer(x)
 
-    
     def run(self, states):
         return self.forward(states)
 
@@ -78,3 +87,10 @@ class DeepQNetwork(Module):
             None
         """
         "*** YOUR CODE HERE ***"
+
+        self.optimizer.zero_grad()
+        loss = self.get_loss(states, Q_target)
+        loss.backward()
+        self.optimizer.step()
+        self.scheduler.step()
+        # print(f"Loss: {loss.item()}")
