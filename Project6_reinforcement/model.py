@@ -24,17 +24,14 @@ class DeepQNetwork(Module):
         # and self.batch_size!
         "*** YOUR CODE HERE ***"
         self.learning_rate = 0.0005
-        self.numTrainingGames = 5000
+        self.numTrainingGames = 35000 # 50000 is guaranteed to work...
         self.batch_size = 128
 
         self.fc1 = Linear(state_dim, 256)
-        self.fc2 = Linear(256, 128)
-        self.output_layer = Linear(128, action_dim)
+        self.fc2 = Linear(256, 256)
+        self.output_layer = Linear(256, action_dim)
 
-        self.optimizer = optim.SGD(self.parameters(), lr=self.learning_rate)
-        self.scheduler = optim.lr_scheduler.StepLR(
-            self.optimizer, step_size=5, gamma=0.0001
-        )
+        self.optimizer = optim.AdamW(self.parameters(), lr=self.learning_rate, weight_decay=0.01)
         "**END CODE" ""
         self.double()
 
@@ -92,5 +89,4 @@ class DeepQNetwork(Module):
         loss = self.get_loss(states, Q_target)
         loss.backward()
         self.optimizer.step()
-        self.scheduler.step()
         # print(f"Loss: {loss.item()}")
